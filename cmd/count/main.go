@@ -15,7 +15,7 @@ import (
 const (
 	host     = "localhost"
 	port     = 5432
-	user     = "r0ckwe11"
+	user     = "postgres"
 	password = "postgres1"
 	dbname   = "mydatabase"
 )
@@ -52,8 +52,7 @@ func (h *Handlers) GetCounter(c echo.Context) error {
 
 func (dp *DatabaseProvider) GetCount() (int, error) {
 	var value int
-
-	row := dp.db.QueryRow("SELECT COALESCE(count, 0) FROM count WHERE name=$1", "key1")
+	row := dp.db.QueryRow("SELECT count FROM count WHERE name=$1", "key1")
 	err := row.Scan(&value)
 	if err != nil {
 		return 0, err
@@ -63,7 +62,7 @@ func (dp *DatabaseProvider) GetCount() (int, error) {
 }
 
 func (dp *DatabaseProvider) AddCount(a int) error {
-	_, err := dp.db.Exec("INSERT INTO count (name, count) VALUES ($2, $1) ON CONFLICT (name) DO UPDATE SET count = count.count + $1", a, "key1")
+	_, err := dp.db.Exec("UPDATE count SET count = count.count + $1 WHERE name = $2", a, "key1")
 	if err != nil {
 		return err
 	}
